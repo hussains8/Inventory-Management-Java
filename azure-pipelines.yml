@@ -53,7 +53,8 @@ stages:
                   $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
                 sudo apt-get update
                 sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-                sudo usermod -aG docker $(whoami)
+                sudo usermod -aG docker $(whoami)  # Add current user to Docker group
+                newgrp docker  # Ensure changes take effect immediately
               displayName: 'Install Docker'
 
             # ✅ Compile Java Code
