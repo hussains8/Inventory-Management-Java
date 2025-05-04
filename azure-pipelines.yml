@@ -37,6 +37,11 @@ stages:
                 cd $(backend_path)
                 mvn clean package -Dmaven.test.skip=true
               displayName: 'Build Java Backend'
+            - script: |
+                whoami
+                groups
+                docker ps
+              displayName: 'Check Docker Access'
             - task: Docker@2
               inputs:
                 containerRegistry: 'ADO-ACR-Connection'
