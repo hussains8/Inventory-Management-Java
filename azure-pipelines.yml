@@ -7,8 +7,8 @@ variables:
   java_version: '17'                              # Java version to use
 
   # 🐳 Docker Image Configuration
-  acr_name: 'youracrname'                         # e.g., myacrregistry
-  acr_login_server: 'youracrname.azurecr.io'      # e.g., myacrregistry.azurecr.io
+  acr_name: 'aadevtestacr3334'                         # e.g., myacrregistry
+  acr_login_server: ''      # e.g., myacrregistry.azurecr.io
   docker_image_name: 'backend-service'            # Docker image name
   docker_image_tag: '$(Build.BuildId)'            # Tag using Build ID
 
@@ -49,3 +49,12 @@ stages:
               inputs:
                 containerRegistry: 'ADO-ACR-Connection'
                 command: 'login'
+            - task: Docker@2
+              displayName: 'Build Docker Image'
+              inputs:
+                containerRegistry: 'ADO-ACR-Connection'
+                repository: 'inventory-management-backend'
+                command: 'build'
+                Dockerfile: '$(System.DefaultWorkingDirectory)/backend/Dockerfile'
+                tags: |
+                  $(docker_image_tag)
