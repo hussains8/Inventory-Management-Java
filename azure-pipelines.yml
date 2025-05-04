@@ -1,19 +1,45 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
 - main
 
-pool:
-  vmImage: ubuntu-latest
+variables:
+  # 📁 Project Configuration
+  backend_path: 'backend'                         # Relative path to Java backend
+  java_version: '17'                              # Java version to use
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+  # 🐳 Docker Image Configuration
+  acr_name: 'youracrname'                         # e.g., myacrregistry
+  acr_login_server: 'youracrname.azurecr.io'      # e.g., myacrregistry.azurecr.io
+  docker_image_name: 'backend-service'            # Image name to push to ACR
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+stages:
+
+# ===============================
+# 🔧 Build & Dockerize Java Code
+# ===============================
+- stage: BuildAndPushDockerImage
+  displayName: 'Build Java App and Push Docker Image to ACR'
+  jobs:
+  - deployment: DockerImageBuild
+    displayName: 'Build and Push Java Docker Image'
+    environment:
+      name: dev-test
+      resourceName: aadopagent-vm
+      resourceType: virtualMachine
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - checkout: self
+
+            - task: Maven@4
+              inputs:
+                azureSubscription: 'Azure subscription 1(c8b36791-92b0-4f6b-a1b2-a899b42eb7a9)'
+                mavenPomFile: 'backend/pom.xml'
+                goals: 'clean compile package'
+                publishJUnitResults: true
+                testResultsFiles: '**/surefire-reports/TEST-*.xml'
+                javaHomeOption: 'JDKVersion'
+                mavenVersionOption: 'Default'
+                mavenAuthenticateFeed: false
+                effectivePomSkip: false
+                sonarQubeRunAnalysis: false
