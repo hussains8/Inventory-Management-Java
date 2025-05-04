@@ -9,18 +9,19 @@ variables:
   # 🐳 Docker Image Configuration
   acr_name: 'youracrname'                         # e.g., myacrregistry
   acr_login_server: 'youracrname.azurecr.io'      # e.g., myacrregistry.azurecr.io
-  docker_image_name: 'backend-service'            # Image name to push to ACR
+  docker_image_name: 'backend-service'            # Docker image name
+  docker_image_tag: '$(Build.BuildId)'            # Tag using Build ID
 
 stages:
 
-# ===============================
-# 🔧 Build & Dockerize Java Code
-# ===============================
+# =========================================
+# 🔧 Build Java App & Push Docker to ACR
+# =========================================
 - stage: BuildAndPushDockerImage
   displayName: 'Build Java App and Push Docker Image to ACR'
   jobs:
   - deployment: DockerImageBuild
-    displayName: 'Build and Push Java Docker Image'
+    displayName: 'Build and Push Docker Image'
     environment:
       name: dev-test
       resourceName: aadopagent-vm
@@ -31,15 +32,20 @@ stages:
           steps:
             - checkout: self
 
-            - task: Maven@4
+            # ✅ Install Java 17 and Maven if not available
+            - script: |
+                echo "Installing Java 17 and Maven..."
+                sudo apt-get update
+                sudo apt-get install -y openjdk-17-jdk maven
+              displayName: 'Install Java 17 and Maven'
+
+            # ✅ Compile Java Code
+            - script: |
+                echo "Compiling Java Backend..."
+                cd $(backend_path)
+                mvn clean package -Dmaven.test.skip=true
+              displayName: 'Build Java Backend'
+            - task: Docker@2
               inputs:
-                azureSubscription: 'Azure subscription 1(c8b36791-92b0-4f6b-a1b2-a899b42eb7a9)'
-                mavenPomFile: 'backend/pom.xml'
-                goals: 'clean compile package'
-                publishJUnitResults: true
-                testResultsFiles: '**/surefire-reports/TEST-*.xml'
-                javaHomeOption: 'JDKVersion'
-                mavenVersionOption: 'Default'
-                mavenAuthenticateFeed: false
-                effectivePomSkip: false
-                sonarQubeRunAnalysis: false
+                containerRegistry: 'ADO-ACR-Connection'
+                command: 'login'
