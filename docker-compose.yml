@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  
+  backend:
+    build: ./backend
+    container_name: inventory-backend
+    environment:
+      - DB_URL=jdbc:sqlserver://db:1433;databaseName=InventoryDB;encrypt=true;trustServerCertificate=true;createDatabaseIfNotExist=true
+      - DB_USERNAME=sa
+      - DB_PASSWORD=Password123
+      - CORS_CONFIG=http://localhost:3000
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    restart: always
+    networks:
+      - inventory-net
+
+  frontend:
+    build: ./frontend
+    container_name: inventory-frontend
+    environment:
+      - REACT_APP_API_URL=http://localhost:8080/products
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: always
+    networks:
+      - inventory-net
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mssql-db
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Password123
+    ports:
+      - "1433:1433"
+    restart: always
+    networks:
+      - inventory-net
+
+volumes:
+  sqlserver_data:
+
+networks:
+  inventory-net:
+    driver: bridge
