@@ -31,32 +31,6 @@ stages:
         deploy:
           steps:
             - checkout: self
-
-            # ✅ Install Java 17 and Maven if not available
-            - script: |
-                echo "Installing Java 17 and Maven..."
-                sudo apt-get update
-                sudo apt-get install -y openjdk-17-jdk maven
-              displayName: 'Install Java 17 and Maven'
-            - script: |
-                echo "Installing Docker..."
-                sudo apt-get update
-                sudo apt-get install -y \
-                  ca-certificates \
-                  curl \
-                  gnupg \
-                  lsb-release
-                sudo mkdir -p /etc/apt/keyrings
-                curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-                echo \
-                  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-                  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-                sudo apt-get update
-                sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-                sudo usermod -aG docker $(whoami)  # Add current user to Docker group
-                newgrp docker  # Ensure changes take effect immediately
-              displayName: 'Install Docker'
-
             # ✅ Compile Java Code
             - script: |
                 echo "Compiling Java Backend..."
